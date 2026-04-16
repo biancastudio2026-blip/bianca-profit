@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bianca_eye.studio 記帳系統</title>
+    <style>
+        :root {
+            --bg-color: #F9F8F6;
+            --card-bg: #FFFFFF;
+            --primary-color: #C1B6A6;
+            --text-main: #4A4643;
+            --text-light: #8A857F;
+            --expense-color: #D28E8E;
+            --income-color: #829D82;
+            --border-radius: 16px;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, 'PingFang TC', 'Heiti TC', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px 15px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px; /* 適合手機寬度 */
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        header h1 {
+            font-size: 22px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            margin: 0;
+            color: var(--text-main);
+        }
+
+        /* 結算看板 */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .dash-card {
+            background: var(--card-bg);
+            padding: 16px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            text-align: center;
+        }
+
+        .dash-card.total {
+            grid-column: span 2;
+            background: var(--primary-color);
+            color: #FFF;
+        }
+
+        .dash-title {
+            font-size: 13px;
+            margin-bottom: 8px;
+            color: var(--text-light);
+        }
+
+        .dash-card.total .dash-title {
+            color: #F0EBE1;
+        }
+
+        .dash-amount {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        /* 輸入表單 */
+        .form-section {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 6px;
+            color: var(--text-light);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #EBE6E0;
+            border-radius: 10px;
+            font-size: 15px;
+            box-sizing: border-box;
+            background-color: #FAFAFA;
+            color: var(--text-main);
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary-color);
+        }
+
+        button {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 500;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            letter-spacing: 2px;
+        }
+
+        button:active {
+            background-color: #AFA28F;
+        }
+
+        /* 歷史紀錄 */
+        .history-section h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .record-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .record-item {
+            background: var(--card-bg);
+            padding: 14px 16px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+
+        .record-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .record-type {
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .record-note {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        .record-date {
+            font-size: 11px;
+            color: #C0C0C0;
+            margin-top: 2px;
+        }
+
+        .record-amount {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .income { color: var(--income-color); }
+        .expense { color: var(--expense-color); }
+        
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #D28E8E;
+            padding: 0 0 0 10px;
+            font-size: 18px;
+            width: auto;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Bianca_eye.studio</h1>
+    </header>
+
+    <div class="dashboard">
+        <div class="dash-card">
+            <div class="dash-title">今日結算</div>
+            <div class="dash-amount" id="dailyTotal">$0</div>
+        </div>
+        <div class="dash-card">
+            <div class="dash-title">本月結算</div>
+            <div class="dash-amount" id="monthlyTotal">$0</div>
+        </div>
+        <div class="dash-card total">
+            <div class="dash-title">累積總結算</div>
+            <div class="dash-amount" id="grandTotal">$0</div>
+        </div>
+    </div>
+
+    <div class="form-section">
+        <div class="form-group">
+            <label>日期</label>
+            <input type="date" id="recordDate">
+        </div>
+        <div class="form-group">
+            <label>項目</label>
+            <select id="recordType">
+                <option value="睫毛管理">睫毛管理</option>
+                <option value="下睫毛">下睫毛</option>
+                <option value="眉形雕塑">眉形雕塑</option>
+                <option value="支出">支出</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>金額 (直接輸入數字)</label>
+            <input type="number" id="recordAmount" placeholder="例如: 1500">
+        </div>
+        <div class="form-group">
+            <label>備註 (支出項目建議填寫)</label>
+            <input type="text" id="recordNote" placeholder="例如: 購買睫毛膠水...">
+        </div>
+        <button onclick="addRecord()">新增紀錄</button>
+    </div>
+
+    <div class="history-section">
+        <h3>近期紀錄</h3>
+        <ul class="record-list" id="recordList">
+            </ul>
+    </div>
+</div>
+
+<script>
+    // 預設填入當天日期
+    document.getElementById('recordDate').valueAsDate = new Date();
+
+    // 取得本地儲存的紀錄，若無則為空陣列
+    let records = JSON.parse(localStorage.getItem('studioRecords')) || [];
+
+    function addRecord() {
+        const date = document.getElementById('recordDate').value;
+        const type = document.getElementById('recordType').value;
+        const amountInput = document.getElementById('recordAmount').value;
+        const note = document.getElementById('recordNote').value;
+
+        if (!date || !amountInput) {
+            alert('請填寫日期與金額！');
+            return;
+        }
+
+        const amount = parseInt(amountInput);
+
+        const newRecord = {
+            id: Date.now(),
+            date: date,
+            type: type,
+            amount: type === '支出' ? -Math.abs(amount) : Math.abs(amount),
+            note: note
+        };
+
+        records.unshift(newRecord); // 加在陣列最前面（最新）
+        localStorage.setItem('studioRecords', JSON.stringify(records)); // 存入瀏覽器
+        
+        document.getElementById('recordAmount').value = '';
+        document.getElementById('recordNote').value = '';
+        
+        updateUI();
+    }
+
+    function deleteRecord(id) {
+        if(confirm('確定要刪除這筆紀錄嗎？')) {
+            records = records.filter(record => record.id !== id);
+            localStorage.setItem('studioRecords', JSON.stringify(records));
+            updateUI();
+        }
+    }
+
+    function updateUI() {
+        const list = document.getElementById('recordList');
+        list.innerHTML = '';
+
+        let dailyTotal = 0;
+        let monthlyTotal = 0;
+        let grandTotal = 0;
+
+        const today = new Date().toISOString().split('T')[0];
+        const currentMonth = today.substring(0, 7); // 格式 YYYY-MM
+
+        records.forEach(record => {
+            // 計算
+            grandTotal += record.amount;
+            if (record.date === today) dailyTotal += record.amount;
+            if (record.date.startsWith(currentMonth)) monthlyTotal += record.amount;
+
+            // 渲染列表
+            const isExpense = record.amount < 0;
+            const amountClass = isExpense ? 'expense' : 'income';
+            const displayAmount = isExpense ? record.amount : `+${record.amount}`;
+
+            const li = document.createElement('li');
+            li.className = 'record-item';
+            li.innerHTML = `
+                <div class="record-info">
+                    <span class="record-type">${record.type}</span>
+                    ${record.note ? `<span class="record-note">${record.note}</span>` : ''}
+                    <span class="record-date">${record.date}</span>
+                </div>
+                <div>
+                    <span class="record-amount ${amountClass}">${displayAmount}</span>
+                    <button class="delete-btn" onclick="deleteRecord(${record.id})">×</button>
+                </div>
+            `;
+            list.appendChild(li);
+        });
+
+        document.getElementById('dailyTotal').innerText = `$${dailyTotal.toLocaleString()}`;
+        document.getElementById('monthlyTotal').innerText = `$${monthlyTotal.toLocaleString()}`;
+        document.getElementById('grandTotal').innerText = `$${grandTotal.toLocaleString()}`;
+    }
+
+    // 初始化畫面
+    updateUI();
+</script>
+
+</body>
+</html>
