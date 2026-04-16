@@ -9,6 +9,7 @@
             --bg-color: #F9F8F6;
             --card-bg: #FFFFFF;
             --primary-color: #C1B6A6;
+            --primary-dark: #AFA28F;
             --text-main: #4A4643;
             --text-light: #8A857F;
             --expense-color: #D28E8E;
@@ -17,209 +18,229 @@
         }
 
         body {
-            font-family: 'Helvetica Neue', Arial, 'PingFang TC', 'Heiti TC', sans-serif;
+            font-family: 'Helvetica Neue', Arial, 'PingFang TC', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
             margin: 0;
-            padding: 20px 15px;
+            padding: 20px 15px 40px;
             display: flex;
             justify-content: center;
         }
 
-        .container {
-            width: 100%;
-            max-width: 480px;
-        }
+        .container { width: 100%; max-width: 480px; }
 
-        header {
-            text-align: center;
-            margin-bottom: 24px;
-        }
+        header { text-align: center; margin-bottom: 20px; }
+        header h1 { font-size: 22px; font-weight: 500; letter-spacing: 1px; margin: 0; }
 
-        header h1 {
-            font-size: 22px;
-            font-weight: 500;
-            letter-spacing: 1px;
-            margin: 0;
-            color: var(--text-main);
+        /* 堆疊式滑動看板 */
+        .dash-carousel-container {
+            position: relative;
+            margin-bottom: 20px;
         }
-
-        /* 結算看板 */
-        .dashboard {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-
-        .dash-card {
-            background: var(--card-bg);
-            padding: 16px;
+        .dash-carousel {
+            height: 110px;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
             border-radius: var(--border-radius);
             box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-            text-align: center;
+            background: var(--card-bg);
+        }
+        .dash-carousel::-webkit-scrollbar { display: none; }
+        
+        .dash-card {
+            height: 110px;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .dash-card.total { background: var(--primary-color); color: #FFF; }
+        .dash-card.total .dash-title { color: #F0EBE1; }
+        .dash-title { font-size: 13px; margin-bottom: 8px; color: var(--text-light); }
+        .dash-amount { font-size: 24px; font-weight: 600; }
+        
+        .swipe-hint {
+            position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
+            display: flex; flex-direction: column; align-items: center;
+            color: rgba(0,0,0,0.15); font-size: 12px; pointer-events: none;
         }
 
-        .dash-card.total {
-            grid-column: span 2;
-            background: var(--primary-color);
-            color: #FFF;
+        /* 月份目標區塊 */
+        .goal-section {
+            background: var(--card-bg); padding: 16px;
+            border-radius: var(--border-radius); margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
         }
-
-        .dash-title {
-            font-size: 13px;
-            margin-bottom: 8px;
-            color: var(--text-light);
-        }
-
-        .dash-card.total .dash-title {
-            color: #F0EBE1;
-        }
-
-        .dash-amount {
-            font-size: 20px;
-            font-weight: 600;
-        }
+        .goal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;}
+        .goal-header h3 { margin: 0; font-size: 15px; font-weight: 500; }
+        .goal-settings input { padding: 8px; font-size: 13px; margin-bottom: 8px; }
+        
+        .progress-container { background: #F0EBE1; border-radius: 10px; height: 10px; margin: 10px 0; overflow: hidden;}
+        .progress-bar { background: var(--income-color); height: 100%; width: 0%; transition: 0.5s; }
+        
+        .goal-stats { font-size: 12px; color: var(--text-light); display: flex; justify-content: space-between; }
+        .goal-reward { font-size: 13px; color: var(--primary-dark); font-weight: 500; margin-top: 8px; text-align: center; }
 
         /* 表單 */
         .form-section {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: var(--border-radius);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-            margin-bottom: 24px;
+            background: var(--card-bg); padding: 20px;
+            border-radius: var(--border-radius); margin-bottom: 24px;
+        }
+        .type-toggle { display: flex; gap: 10px; margin-bottom: 16px; }
+        .type-btn {
+            flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #EBE6E0;
+            background: #FAFAFA; color: var(--text-light); font-weight: 500;
+        }
+        .type-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+        .type-btn.expense-active { background: var(--expense-color); color: white; border-color: var(--expense-color); }
+
+        .form-group { margin-bottom: 16px; }
+        label { display: block; font-size: 13px; margin-bottom: 6px; color: var(--text-light); }
+        input { width: 100%; padding: 12px; border: 1px solid #EBE6E0; border-radius: 10px; font-size: 15px; box-sizing: border-box; background: #FAFAFA; outline: none; }
+        
+        .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+        .chip {
+            padding: 8px 14px; border-radius: 20px; background: #F0EBE1;
+            font-size: 13px; color: var(--text-light); cursor: pointer; transition: 0.2s; border: 1px solid transparent;
+        }
+        .chip.selected { background: var(--primary-color); color: white; }
+
+        .submit-btn { width: 100%; background: var(--primary-color); color: white; border: none; padding: 14px; font-size: 16px; font-weight: 500; border-radius: 10px; cursor: pointer; letter-spacing: 2px; }
+
+        /* 分頁歷史紀錄 */
+        .tabs { display: flex; border-bottom: 2px solid #F0EBE1; margin-bottom: 16px; }
+        .tab-btn {
+            flex: 1; background: none; border: none; padding: 12px; font-size: 15px;
+            color: var(--text-light); cursor: pointer; position: relative; font-weight: 500;
+        }
+        .tab-btn.active { color: var(--text-main); }
+        .tab-btn.active::after {
+            content: ''; position: absolute; bottom: -2px; left: 0; width: 100%;
+            height: 2px; background: var(--primary-color);
         }
 
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        label {
-            display: block;
-            font-size: 13px;
-            margin-bottom: 6px;
-            color: var(--text-light);
-        }
-
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #EBE6E0;
-            border-radius: 10px;
-            font-size: 15px;
-            box-sizing: border-box;
-            background-color: #FAFAFA;
-            color: var(--text-main);
-            outline: none;
-        }
-
-        button {
-            width: 100%;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 14px;
-            font-size: 16px;
-            font-weight: 500;
-            border-radius: 10px;
-            cursor: pointer;
-            letter-spacing: 2px;
-        }
-
-        /* 列表 */
-        .record-item {
-            background: var(--card-bg);
-            padding: 14px 16px;
-            border-radius: 12px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-        }
-
+        .record-list { list-style: none; padding: 0; margin: 0; }
+        .record-item { background: var(--card-bg); padding: 14px 16px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
         .record-info { display: flex; flex-direction: column; }
-        .record-type { font-size: 15px; font-weight: 500; }
+        .record-customer { font-size: 13px; color: var(--text-main); font-weight: 600; margin-bottom: 2px;}
+        .record-tags { font-size: 14px; font-weight: 500; color: var(--primary-dark); }
         .record-note { font-size: 12px; color: var(--text-light); margin-top: 4px; }
-        .record-date { font-size: 11px; color: #C0C0C0; margin-top: 2px; }
+        .record-date { font-size: 11px; color: #C0C0C0; margin-top: 4px; }
         .record-amount { font-size: 16px; font-weight: 600; }
         
         .income { color: var(--income-color); }
         .expense { color: var(--expense-color); }
-        
-        .delete-btn {
-            background: none; border: none; color: #D28E8E;
-            padding: 0 0 0 10px; font-size: 20px; width: auto; cursor: pointer;
-        }
+        .delete-btn { background: none; border: none; color: #D28E8E; padding: 0 0 0 10px; font-size: 20px; cursor: pointer; }
 
-        .loading-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.7); display: none;
-            justify-content: center; align-items: center; z-index: 100;
-        }
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.7); display: none; justify-content: center; align-items: center; z-index: 100; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-<div id="loader" class="loading-overlay">同步中...</div>
+<div id="loader" class="loading-overlay">處理中...</div>
 
 <div class="container">
     <header>
         <h1>Bianca_eye.studio</h1>
     </header>
 
-    <div class="dashboard">
-        <div class="dash-card">
-            <div class="dash-title">今日結算</div>
-            <div class="dash-amount" id="dailyTotal">$0</div>
+    <div class="dash-carousel-container">
+        <div class="dash-carousel">
+            <div class="dash-card">
+                <div class="dash-title">今日營收</div>
+                <div class="dash-amount" id="dailyTotal">$0</div>
+            </div>
+            <div class="dash-card">
+                <div class="dash-title">本月營收</div>
+                <div class="dash-amount" id="monthlyTotal">$0</div>
+            </div>
+            <div class="dash-card total">
+                <div class="dash-title">累積總營收</div>
+                <div class="dash-amount" id="grandTotal">$0</div>
+            </div>
         </div>
-        <div class="dash-card">
-            <div class="dash-title">本月結算</div>
-            <div class="dash-amount" id="monthlyTotal">$0</div>
+        <div class="swipe-hint">
+            <span>▲</span><span>滑動</span><span>▼</span>
         </div>
-        <div class="dash-card total">
-            <div class="dash-title">累積總結算</div>
-            <div class="dash-amount" id="grandTotal">$0</div>
+    </div>
+
+    <div class="goal-section">
+        <div class="goal-header">
+            <h3>本月目標</h3>
+            <button onclick="toggleGoalSettings()" style="background:none;border:none;color:var(--text-light);font-size:12px;cursor:pointer;">設定 ⚙️</button>
+        </div>
+        
+        <div id="goalSettings" class="goal-settings hidden">
+            <input type="number" id="goalInput" placeholder="設定本月目標金額">
+            <input type="text" id="rewardInput" placeholder="達標鼓勵 (例如：帶全家去東京晴空塔之旅！)">
+            <button onclick="saveGoal()" style="width:100%; padding:8px; border-radius:8px; background:var(--primary-color); color:#fff; border:none; margin-bottom:12px;">儲存目標</button>
+        </div>
+
+        <div id="goalProgressArea">
+            <div class="progress-container"><div class="progress-bar" id="goalBar"></div></div>
+            <div class="goal-stats">
+                <span id="goalCurrentText">目前: $0</span>
+                <span id="goalTargetText">目標: $0</span>
+            </div>
+            <div class="goal-reward" id="goalRewardText">設定一個目標來增加動力吧！</div>
         </div>
     </div>
 
     <div class="form-section">
+        <div class="type-toggle">
+            <button class="type-btn active" id="btnIncome" onclick="setRecordType('income')">收入</button>
+            <button class="type-btn" id="btnExpense" onclick="setRecordType('expense')">支出</button>
+        </div>
+
         <div class="form-group">
             <label>日期</label>
             <input type="date" id="recordDate">
         </div>
-        <div class="form-group">
-            <label>項目</label>
-            <select id="recordType">
-                <option value="睫毛管理">睫毛管理</option>
-                <option value="下睫毛">下睫毛</option>
-                <option value="眉形雕塑">眉形雕塑</option>
-                <option value="支出">支出</option>
-            </select>
+        
+        <div class="form-group" id="customerGroup">
+            <label>客戶姓名 (選填)</label>
+            <input type="text" id="recordCustomer" placeholder="輸入客戶姓名">
         </div>
+
+        <div class="form-group" id="itemsGroup">
+            <label>項目 (可複選)</label>
+            <div class="chips">
+                <div class="chip" onclick="toggleChip(this)">睫毛管理</div>
+                <div class="chip" onclick="toggleChip(this)">下睫毛</div>
+                <div class="chip" onclick="toggleChip(this)">眉形雕塑</div>
+                <div class="chip" onclick="toggleChip(this)">產品</div>
+            </div>
+        </div>
+
         <div class="form-group">
             <label>金額</label>
             <input type="number" id="recordAmount" placeholder="手打輸入金額">
         </div>
+        
         <div class="form-group">
-            <label>備註 (支出細項)</label>
+            <label>備註細項</label>
             <input type="text" id="recordNote" placeholder="選填">
         </div>
-        <button id="addBtn">新增雲端紀錄</button>
+        
+        <button class="submit-btn" id="addBtn">新增雲端紀錄</button>
     </div>
 
     <div class="history-section">
-        <h3>歷史紀錄</h3>
+        <div class="tabs">
+            <button class="tab-btn active" id="tabIncome" onclick="switchList('income')">收入紀錄</button>
+            <button class="tab-btn" id="tabExpense" onclick="switchList('expense')">支出紀錄</button>
+        </div>
         <ul class="record-list" id="recordList"></ul>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, onSnapshot } 
+    import { getFirestore, collection, addDoc, query, orderBy, deleteDoc, doc, onSnapshot } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // 妳提供的 Firebase 設定
     const firebaseConfig = {
         apiKey: "AIzaSyBuiNU7dx3MYZCLWv1cqxjToYeaHOMLLE8",
         authDomain: "bianca-profit.firebaseapp.com",
@@ -230,57 +251,137 @@
         measurementId: "G-8JMM2ZLQG0"
     };
 
-    // 初始化 Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const recordsCol = collection(db, "accounting_records");
 
-    // 預設日期
-    document.getElementById('recordDate').valueAsDate = new Date();
+    let allRecords = [];
+    let currentRecordType = 'income'; // 'income' or 'expense'
+    let currentTab = 'income'; // 'income' or 'expense'
 
-    // 監聽資料庫變化 (即時更新 UI)
+    // 初始化
+    document.getElementById('recordDate').valueAsDate = new Date();
+    loadGoal();
+
+    // 複選標籤邏輯
+    window.toggleChip = function(element) {
+        element.classList.toggle('selected');
+    }
+
+    // 收入/支出 表單切換
+    window.setRecordType = function(type) {
+        currentRecordType = type;
+        const btnInc = document.getElementById('btnIncome');
+        const btnExp = document.getElementById('btnExpense');
+        const itemsGroup = document.getElementById('itemsGroup');
+        const customerGroup = document.getElementById('customerGroup');
+        
+        if(type === 'income') {
+            btnInc.className = 'type-btn active';
+            btnExp.className = 'type-btn';
+            itemsGroup.classList.remove('hidden');
+            customerGroup.classList.remove('hidden');
+        } else {
+            btnInc.className = 'type-btn';
+            btnExp.className = 'type-btn expense-active';
+            itemsGroup.classList.add('hidden'); // 支出隱藏美業項目
+            customerGroup.classList.add('hidden'); // 支出通常不需要記客戶
+            
+            // 清除已選標籤
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+        }
+    }
+
+    // 歷史紀錄 Tab 切換
+    window.switchList = function(tab) {
+        currentTab = tab;
+        document.getElementById('tabIncome').classList.toggle('active', tab === 'income');
+        document.getElementById('tabExpense').classList.toggle('active', tab === 'expense');
+        renderList();
+    }
+
+    // 目標設定邏輯 (存在本機即可)
+    window.toggleGoalSettings = function() {
+        document.getElementById('goalSettings').classList.toggle('hidden');
+    }
+    
+    window.saveGoal = function() {
+        const goal = document.getElementById('goalInput').value;
+        const reward = document.getElementById('rewardInput').value;
+        localStorage.setItem('studioGoal', goal);
+        localStorage.setItem('studioReward', reward);
+        loadGoal();
+        toggleGoalSettings();
+        calculateTotals(); // 重新渲染進度條
+    }
+
+    function loadGoal() {
+        const goal = localStorage.getItem('studioGoal');
+        const reward = localStorage.getItem('studioReward');
+        if(goal) document.getElementById('goalInput').value = goal;
+        if(reward) document.getElementById('rewardInput').value = reward;
+    }
+
+    // 監聽 Firebase 資料庫變化
     const q = query(recordsCol, orderBy("date", "desc"));
     onSnapshot(q, (snapshot) => {
-        const records = [];
+        allRecords = [];
         snapshot.forEach((doc) => {
-            records.push({ id: doc.id, ...doc.data() });
+            allRecords.push({ id: doc.id, ...doc.data() });
         });
-        updateUI(records);
+        calculateTotals();
+        renderList();
     });
 
-    // 新增紀錄功能
-    async function addRecord() {
+    // 新增紀錄
+    document.getElementById('addBtn').addEventListener('click', async () => {
         const date = document.getElementById('recordDate').value;
-        const type = document.getElementById('recordType').value;
         const amountInput = document.getElementById('recordAmount').value;
         const note = document.getElementById('recordNote').value;
-
+        const customer = document.getElementById('recordCustomer').value;
+        
         if (!date || !amountInput) {
-            alert('請填寫日期與金額');
-            return;
+            alert('請填寫日期與金額'); return;
         }
 
-        document.getElementById('loader').style.display = 'flex';
+        let selectedItems = [];
+        if (currentRecordType === 'income') {
+            document.querySelectorAll('.chip.selected').forEach(c => selectedItems.push(c.innerText));
+            if (selectedItems.length === 0) selectedItems.push('其他收入');
+        } else {
+            selectedItems.push('支出');
+        }
+
         const amount = parseInt(amountInput);
+        const finalAmount = currentRecordType === 'expense' ? -Math.abs(amount) : Math.abs(amount);
+
+        document.getElementById('loader').style.display = 'flex';
 
         try {
             await addDoc(recordsCol, {
                 date: date,
-                type: type,
-                amount: type === '支出' ? -Math.abs(amount) : Math.abs(amount),
+                type: currentRecordType === 'income' ? '收入' : '支出',
+                items: selectedItems,
+                customer: customer,
+                amount: finalAmount,
                 note: note,
                 createdAt: new Date()
             });
+            
+            // 清空表單
             document.getElementById('recordAmount').value = '';
             document.getElementById('recordNote').value = '';
+            document.getElementById('recordCustomer').value = '';
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+
         } catch (e) {
-            console.error("Error adding document: ", e);
-            alert("同步失敗，請檢查網路或 Firebase 權限");
+            console.error(e);
+            alert("同步失敗，請檢查網路");
         }
         document.getElementById('loader').style.display = 'none';
-    }
+    });
 
-    // 刪除紀錄功能
+    // 刪除紀錄
     window.deleteRecord = async (id) => {
         if(confirm('確定要從雲端刪除這筆紀錄嗎？')) {
             document.getElementById('loader').style.display = 'flex';
@@ -289,29 +390,73 @@
         }
     }
 
-    // 更新介面與計算邏輯
-    function updateUI(records) {
-        const list = document.getElementById('recordList');
-        list.innerHTML = '';
-
-        let dailyTotal = 0;
-        let monthlyTotal = 0;
-        let grandTotal = 0;
-
+    // 計算總額與目標進度
+    function calculateTotals() {
+        let dailyTotal = 0, monthlyTotal = 0, grandTotal = 0;
         const today = new Date().toISOString().split('T')[0];
         const currentMonth = today.substring(0, 7);
 
-        records.forEach(record => {
+        allRecords.forEach(record => {
+            // 只加總「收入」來計算營收，還是收支合併算利潤？通常業績看板看收入，這裡我們合併計算真實盈餘
             grandTotal += record.amount;
             if (record.date === today) dailyTotal += record.amount;
             if (record.date.startsWith(currentMonth)) monthlyTotal += record.amount;
+        });
 
+        document.getElementById('dailyTotal').innerText = `$${dailyTotal.toLocaleString()}`;
+        document.getElementById('monthlyTotal').innerText = `$${monthlyTotal.toLocaleString()}`;
+        document.getElementById('grandTotal').innerText = `$${grandTotal.toLocaleString()}`;
+
+        // 更新目標進度
+        const goal = parseInt(localStorage.getItem('studioGoal')) || 0;
+        const reward = localStorage.getItem('studioReward') || '';
+        
+        document.getElementById('goalCurrentText').innerText = `目前: $${monthlyTotal.toLocaleString()}`;
+        
+        if (goal > 0) {
+            document.getElementById('goalTargetText').innerText = `目標: $${goal.toLocaleString()}`;
+            let percent = (monthlyTotal / goal) * 100;
+            if(percent < 0) percent = 0;
+            if(percent > 100) percent = 100;
+            
+            document.getElementById('goalBar').style.width = `${percent}%`;
+            
+            const distance = goal - monthlyTotal;
+            if (distance > 0) {
+                document.getElementById('goalRewardText').innerText = `距離目標還差 $${distance.toLocaleString()} ✨`;
+            } else {
+                document.getElementById('goalRewardText').innerText = `🎉 達標了！去兌現鼓勵吧：${reward}`;
+            }
+        } else {
+            document.getElementById('goalTargetText').innerText = `尚未設定目標`;
+            document.getElementById('goalBar').style.width = `0%`;
+            document.getElementById('goalRewardText').innerText = `設定一個目標來增加動力吧！`;
+        }
+    }
+
+    // 渲染歷史列表
+    function renderList() {
+        const list = document.getElementById('recordList');
+        list.innerHTML = '';
+
+        // 過濾當前 Tab 的資料
+        const filteredRecords = allRecords.filter(record => {
             const isExpense = record.amount < 0;
+            return currentTab === 'income' ? !isExpense : isExpense;
+        });
+
+        filteredRecords.forEach(record => {
+            const isExpense = record.amount < 0;
+            // 兼容舊資料：如果沒有 items 陣列，就用 type 字串
+            const tagsDisplay = Array.isArray(record.items) ? record.items.join('、') : record.type;
+            const customerDisplay = record.customer ? `<div class="record-customer">${record.customer}</div>` : '';
+            
             const li = document.createElement('li');
             li.className = 'record-item';
             li.innerHTML = `
                 <div class="record-info">
-                    <span class="record-type">${record.type}</span>
+                    ${customerDisplay}
+                    <span class="record-tags">${tagsDisplay}</span>
                     ${record.note ? `<span class="record-note">${record.note}</span>` : ''}
                     <span class="record-date">${record.date}</span>
                 </div>
@@ -324,14 +469,11 @@
             `;
             list.appendChild(li);
         });
-
-        document.getElementById('dailyTotal').innerText = `$${dailyTotal.toLocaleString()}`;
-        document.getElementById('monthlyTotal').innerText = `$${monthlyTotal.toLocaleString()}`;
-        document.getElementById('grandTotal').innerText = `$${grandTotal.toLocaleString()}`;
+        
+        if(filteredRecords.length === 0) {
+            list.innerHTML = `<li style="text-align:center; padding:20px; color:#8A857F; font-size:13px;">目前沒有紀錄</li>`;
+        }
     }
-
-    // 綁定按鈕事件
-    document.getElementById('addBtn').addEventListener('click', addRecord);
 </script>
 
 </body>
