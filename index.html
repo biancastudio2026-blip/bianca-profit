@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bianca_eye.studio 記帳系統</title>
+    <title>Bianca_eye.studio 雲端收支系統</title>
     <style>
         :root {
             --bg-color: #F9F8F6;
@@ -28,7 +28,7 @@
 
         .container {
             width: 100%;
-            max-width: 480px; /* 適合手機寬度 */
+            max-width: 480px;
         }
 
         header {
@@ -81,7 +81,7 @@
             font-weight: 600;
         }
 
-        /* 輸入表單 */
+        /* 表單 */
         .form-section {
             background: var(--card-bg);
             padding: 20px;
@@ -113,10 +113,6 @@
             outline: none;
         }
 
-        input:focus, select:focus {
-            border-color: var(--primary-color);
-        }
-
         button {
             width: 100%;
             background-color: var(--primary-color);
@@ -127,27 +123,10 @@
             font-weight: 500;
             border-radius: 10px;
             cursor: pointer;
-            transition: 0.2s;
             letter-spacing: 2px;
         }
 
-        button:active {
-            background-color: #AFA28F;
-        }
-
-        /* 歷史紀錄 */
-        .history-section h3 {
-            font-size: 16px;
-            margin-bottom: 12px;
-            font-weight: 500;
-        }
-
-        .record-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
+        /* 列表 */
         .record-item {
             background: var(--card-bg);
             padding: 14px 16px;
@@ -159,47 +138,30 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.02);
         }
 
-        .record-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .record-type {
-            font-size: 15px;
-            font-weight: 500;
-        }
-
-        .record-note {
-            font-size: 12px;
-            color: var(--text-light);
-            margin-top: 4px;
-        }
-
-        .record-date {
-            font-size: 11px;
-            color: #C0C0C0;
-            margin-top: 2px;
-        }
-
-        .record-amount {
-            font-size: 16px;
-            font-weight: 600;
-        }
-
+        .record-info { display: flex; flex-direction: column; }
+        .record-type { font-size: 15px; font-weight: 500; }
+        .record-note { font-size: 12px; color: var(--text-light); margin-top: 4px; }
+        .record-date { font-size: 11px; color: #C0C0C0; margin-top: 2px; }
+        .record-amount { font-size: 16px; font-weight: 600; }
+        
         .income { color: var(--income-color); }
         .expense { color: var(--expense-color); }
         
         .delete-btn {
-            background: none;
-            border: none;
-            color: #D28E8E;
-            padding: 0 0 0 10px;
-            font-size: 18px;
-            width: auto;
+            background: none; border: none; color: #D28E8E;
+            padding: 0 0 0 10px; font-size: 20px; width: auto; cursor: pointer;
+        }
+
+        .loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.7); display: none;
+            justify-content: center; align-items: center; z-index: 100;
         }
     </style>
 </head>
 <body>
+
+<div id="loader" class="loading-overlay">同步中...</div>
 
 <div class="container">
     <header>
@@ -236,69 +198,99 @@
             </select>
         </div>
         <div class="form-group">
-            <label>金額 (直接輸入數字)</label>
-            <input type="number" id="recordAmount" placeholder="例如: 1500">
+            <label>金額</label>
+            <input type="number" id="recordAmount" placeholder="手打輸入金額">
         </div>
         <div class="form-group">
-            <label>備註 (支出項目建議填寫)</label>
-            <input type="text" id="recordNote" placeholder="例如: 購買睫毛膠水...">
+            <label>備註 (支出細項)</label>
+            <input type="text" id="recordNote" placeholder="選填">
         </div>
-        <button onclick="addRecord()">新增紀錄</button>
+        <button id="addBtn">新增雲端紀錄</button>
     </div>
 
     <div class="history-section">
-        <h3>近期紀錄</h3>
-        <ul class="record-list" id="recordList">
-            </ul>
+        <h3>歷史紀錄</h3>
+        <ul class="record-list" id="recordList"></ul>
     </div>
 </div>
 
-<script>
-    // 預設填入當天日期
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, onSnapshot } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // 妳提供的 Firebase 設定
+    const firebaseConfig = {
+        apiKey: "AIzaSyBuiNU7dx3MYZCLWv1cqxjToYeaHOMLLE8",
+        authDomain: "bianca-profit.firebaseapp.com",
+        projectId: "bianca-profit",
+        storageBucket: "bianca-profit.firebasestorage.app",
+        messagingSenderId: "21143203004",
+        appId: "1:21143203004:web:a6fb80b7fcb82a162d34b9",
+        measurementId: "G-8JMM2ZLQG0"
+    };
+
+    // 初始化 Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const recordsCol = collection(db, "accounting_records");
+
+    // 預設日期
     document.getElementById('recordDate').valueAsDate = new Date();
 
-    // 取得本地儲存的紀錄，若無則為空陣列
-    let records = JSON.parse(localStorage.getItem('studioRecords')) || [];
+    // 監聽資料庫變化 (即時更新 UI)
+    const q = query(recordsCol, orderBy("date", "desc"));
+    onSnapshot(q, (snapshot) => {
+        const records = [];
+        snapshot.forEach((doc) => {
+            records.push({ id: doc.id, ...doc.data() });
+        });
+        updateUI(records);
+    });
 
-    function addRecord() {
+    // 新增紀錄功能
+    async function addRecord() {
         const date = document.getElementById('recordDate').value;
         const type = document.getElementById('recordType').value;
         const amountInput = document.getElementById('recordAmount').value;
         const note = document.getElementById('recordNote').value;
 
         if (!date || !amountInput) {
-            alert('請填寫日期與金額！');
+            alert('請填寫日期與金額');
             return;
         }
 
+        document.getElementById('loader').style.display = 'flex';
         const amount = parseInt(amountInput);
 
-        const newRecord = {
-            id: Date.now(),
-            date: date,
-            type: type,
-            amount: type === '支出' ? -Math.abs(amount) : Math.abs(amount),
-            note: note
-        };
-
-        records.unshift(newRecord); // 加在陣列最前面（最新）
-        localStorage.setItem('studioRecords', JSON.stringify(records)); // 存入瀏覽器
-        
-        document.getElementById('recordAmount').value = '';
-        document.getElementById('recordNote').value = '';
-        
-        updateUI();
+        try {
+            await addDoc(recordsCol, {
+                date: date,
+                type: type,
+                amount: type === '支出' ? -Math.abs(amount) : Math.abs(amount),
+                note: note,
+                createdAt: new Date()
+            });
+            document.getElementById('recordAmount').value = '';
+            document.getElementById('recordNote').value = '';
+        } catch (e) {
+            console.error("Error adding document: ", e);
+            alert("同步失敗，請檢查網路或 Firebase 權限");
+        }
+        document.getElementById('loader').style.display = 'none';
     }
 
-    function deleteRecord(id) {
-        if(confirm('確定要刪除這筆紀錄嗎？')) {
-            records = records.filter(record => record.id !== id);
-            localStorage.setItem('studioRecords', JSON.stringify(records));
-            updateUI();
+    // 刪除紀錄功能
+    window.deleteRecord = async (id) => {
+        if(confirm('確定要從雲端刪除這筆紀錄嗎？')) {
+            document.getElementById('loader').style.display = 'flex';
+            await deleteDoc(doc(db, "accounting_records", id));
+            document.getElementById('loader').style.display = 'none';
         }
     }
 
-    function updateUI() {
+    // 更新介面與計算邏輯
+    function updateUI(records) {
         const list = document.getElementById('recordList');
         list.innerHTML = '';
 
@@ -307,19 +299,14 @@
         let grandTotal = 0;
 
         const today = new Date().toISOString().split('T')[0];
-        const currentMonth = today.substring(0, 7); // 格式 YYYY-MM
+        const currentMonth = today.substring(0, 7);
 
         records.forEach(record => {
-            // 計算
             grandTotal += record.amount;
             if (record.date === today) dailyTotal += record.amount;
             if (record.date.startsWith(currentMonth)) monthlyTotal += record.amount;
 
-            // 渲染列表
             const isExpense = record.amount < 0;
-            const amountClass = isExpense ? 'expense' : 'income';
-            const displayAmount = isExpense ? record.amount : `+${record.amount}`;
-
             const li = document.createElement('li');
             li.className = 'record-item';
             li.innerHTML = `
@@ -329,8 +316,10 @@
                     <span class="record-date">${record.date}</span>
                 </div>
                 <div>
-                    <span class="record-amount ${amountClass}">${displayAmount}</span>
-                    <button class="delete-btn" onclick="deleteRecord(${record.id})">×</button>
+                    <span class="record-amount ${isExpense ? 'expense' : 'income'}">
+                        ${isExpense ? record.amount : '+' + record.amount}
+                    </span>
+                    <button class="delete-btn" onclick="deleteRecord('${record.id}')">×</button>
                 </div>
             `;
             list.appendChild(li);
@@ -341,8 +330,8 @@
         document.getElementById('grandTotal').innerText = `$${grandTotal.toLocaleString()}`;
     }
 
-    // 初始化畫面
-    updateUI();
+    // 綁定按鈕事件
+    document.getElementById('addBtn').addEventListener('click', addRecord);
 </script>
 
 </body>
