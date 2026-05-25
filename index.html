@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bianca_eye.studio 雲端收支系統</title>
+    <title>Bianca_eye.studio 安全鎖系統</title>
     <style>
         :root {
             --bg-color: #F9F8F6;
@@ -25,250 +25,215 @@
             padding: 20px 15px 40px;
             display: flex;
             justify-content: center;
+            min-height: 100vh;
         }
 
         .container { width: 100%; max-width: 480px; }
 
-        header { text-align: center; margin-bottom: 20px; }
+        /* 登入畫面樣式 */
+        #loginPage {
+            display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80vh;
+        }
+        .login-card {
+            background: white; padding: 30px; border-radius: var(--border-radius);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05); width: 100%; box-sizing: border-box; text-align: center;
+        }
+        .login-card h2 { margin-bottom: 24px; font-weight: 500; color: var(--text-main); letter-spacing: 2px;}
+
+        /* 主程式介面樣式 */
+        header { text-align: center; margin-bottom: 20px; position: relative; }
         header h1 { font-size: 22px; font-weight: 500; letter-spacing: 1px; margin: 0; }
+        .logout-btn { position: absolute; right: 0; top: 0; background: none; border: 1px solid #DDD; padding: 4px 8px; border-radius: 8px; font-size: 11px; color: var(--text-light); cursor: pointer; }
 
         /* 堆疊式滑動看板 */
-        .dash-carousel-container {
-            position: relative;
-            margin-bottom: 20px;
-        }
+        .dash-carousel-container { position: relative; margin-bottom: 20px; }
         .dash-carousel {
-            height: 110px;
-            overflow-y: scroll;
-            scroll-snap-type: y mandatory;
-            border-radius: var(--border-radius);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-            background: var(--card-bg);
+            height: 110px; overflow-y: scroll; scroll-snap-type: y mandatory;
+            border-radius: var(--border-radius); box-shadow: 0 4px 12px rgba(0,0,0,0.03); background: var(--card-bg);
         }
         .dash-carousel::-webkit-scrollbar { display: none; }
-        
-        .dash-card {
-            height: 110px;
-            scroll-snap-align: start;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
+        .dash-card { height: 110px; scroll-snap-align: start; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .dash-card.total { background: var(--primary-color); color: #FFF; }
-        .dash-card.total .dash-title { color: #F0EBE1; }
         .dash-card.highlight { background: #FDFBF8; border: 2px solid var(--primary-color); box-sizing: border-box; }
-        
         .dash-title { font-size: 13px; margin-bottom: 8px; color: var(--text-light); }
         .dash-amount { font-size: 24px; font-weight: 600; }
-        
-        .swipe-hint {
-            position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
-            display: flex; flex-direction: column; align-items: center;
-            color: rgba(0,0,0,0.15); font-size: 12px; pointer-events: none;
-        }
+        .swipe-hint { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: center; color: rgba(0,0,0,0.15); font-size: 12px; pointer-events: none; }
 
         /* 月份目標 */
-        .goal-section {
-            background: var(--card-bg); padding: 16px;
-            border-radius: var(--border-radius); margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-        }
+        .goal-section { background: var(--card-bg); padding: 16px; border-radius: var(--border-radius); margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
         .goal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;}
         .goal-header h3 { margin: 0; font-size: 15px; font-weight: 500; }
-        
         .progress-container { background: #F0EBE1; border-radius: 10px; height: 10px; margin: 10px 0; overflow: hidden;}
         .progress-bar { background: var(--income-color); height: 100%; width: 0%; transition: 0.5s; }
-        
         .goal-stats { font-size: 12px; color: var(--text-light); display: flex; justify-content: space-between; }
         .goal-reward { font-size: 13px; color: var(--primary-dark); font-weight: 500; margin-top: 8px; text-align: center; }
 
-        /* 記帳表單 */
-        .form-section {
-            background: var(--card-bg); padding: 20px;
-            border-radius: var(--border-radius); margin-bottom: 24px;
-        }
+        /* 表單與輸入 */
+        .form-section { background: var(--card-bg); padding: 20px; border-radius: var(--border-radius); margin-bottom: 24px; }
         .type-toggle { display: flex; gap: 10px; margin-bottom: 16px; }
-        .type-btn {
-            flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #EBE6E0;
-            background: #FAFAFA; color: var(--text-light); font-weight: 500;
-        }
+        .type-btn { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #EBE6E0; background: #FAFAFA; color: var(--text-light); font-weight: 500; cursor: pointer; }
         .type-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
         .type-btn.expense-active { background: var(--expense-color); color: white; border-color: var(--expense-color); }
-
         .form-group { margin-bottom: 16px; }
         label { display: block; font-size: 13px; margin-bottom: 6px; color: var(--text-light); }
-        input { width: 100%; padding: 12px; border: 1px solid #EBE6E0; border-radius: 10px; font-size: 15px; box-sizing: border-box; background: #FAFAFA; outline: none; }
-        input:focus { border-color: var(--primary-color); }
-
+        input { width: 100%; padding: 12px; border: 1px solid #EBE6E0; border-radius: 10px; font-size: 15px; box-sizing: border-box; background: #FAFAFA; outline: none; transition: 0.3s;}
+        input:focus { border-color: var(--primary-color); background: #FFF; }
         .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-        .chip {
-            padding: 8px 14px; border-radius: 20px; background: #F0EBE1;
-            font-size: 13px; color: var(--text-light); cursor: pointer; transition: 0.2s; border: 1px solid transparent;
-        }
+        .chip { padding: 8px 14px; border-radius: 20px; background: #F0EBE1; font-size: 13px; color: var(--text-light); cursor: pointer; border: 1px solid transparent; }
         .chip.selected { background: var(--primary-color); color: white; }
-
-        /* 快速鍵 */
         .shortcut-group { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
-        .shortcut-btn {
-            background: #FDFBF8; border: 1px dashed var(--primary-color);
-            color: var(--primary-dark); padding: 6px 12px; border-radius: 8px;
-            font-size: 12px; cursor: pointer;
-        }
-
+        .shortcut-btn { background: #FDFBF8; border: 1px dashed var(--primary-color); color: var(--primary-dark); padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; }
         .submit-btn { width: 100%; background: var(--primary-color); color: white; border: none; padding: 14px; font-size: 16px; font-weight: 500; border-radius: 10px; cursor: pointer; letter-spacing: 2px; margin-top: 10px; }
 
-        /* 搜尋列 */
+        /* 搜尋與歷史 */
         .search-box { margin-bottom: 16px; position: relative; }
         .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; color: var(--text-light); }
         #searchInput { padding-left: 36px; background: #FFF; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
-
-        /* 歷史分頁 */
         .tabs { display: flex; border-bottom: 2px solid #F0EBE1; margin-bottom: 16px; }
-        .tab-btn {
-            flex: 1; background: none; border: none; padding: 12px; font-size: 15px;
-            color: var(--text-light); cursor: pointer; position: relative; font-weight: 500;
-        }
+        .tab-btn { flex: 1; background: none; border: none; padding: 12px; font-size: 15px; color: var(--text-light); cursor: pointer; position: relative; font-weight: 500; }
         .tab-btn.active { color: var(--text-main); }
-        .tab-btn.active::after {
-            content: ''; position: absolute; bottom: -2px; left: 0; width: 100%;
-            height: 2px; background: var(--primary-color);
-        }
-
+        .tab-btn.active::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 2px; background: var(--primary-color); }
         .record-list { list-style: none; padding: 0; margin: 0; }
         .record-item { background: var(--card-bg); padding: 14px 16px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
-        .record-info { display: flex; flex-direction: column; }
         .record-customer { font-size: 13px; color: var(--text-main); font-weight: 600; margin-bottom: 2px;}
         .record-tags { font-size: 14px; font-weight: 500; color: var(--primary-dark); }
         .record-note { font-size: 12px; color: var(--text-light); margin-top: 4px; }
         .record-date { font-size: 11px; color: #C0C0C0; margin-top: 4px; }
         .record-amount { font-size: 16px; font-weight: 600; }
-        
         .income { color: var(--income-color); }
         .expense { color: var(--expense-color); }
         .delete-btn { background: none; border: none; color: #D28E8E; padding: 0 0 0 10px; font-size: 20px; cursor: pointer; }
 
-        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.7); display: none; justify-content: center; align-items: center; z-index: 100; }
+        /* 全域輔助 */
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; flex-direction: column; gap: 10px; }
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-<div id="loader" class="loading-overlay">處理中...</div>
+<div id="loader" class="loading-overlay">
+    <div style="width:30px; height:30px; border:3px solid #C1B6A6; border-top:3px solid transparent; border-radius:50%; animation: spin 1s linear infinite;"></div>
+    <span id="loadingText" style="color:#C1B6A6; font-size:14px;">同步中...</span>
+</div>
 
 <div class="container">
-    <header>
-        <h1>Bianca_eye.studio</h1>
-    </header>
-
-    <div class="dash-carousel-container">
-        <div class="dash-carousel" id="dashboardCarousel">
-            <div class="dash-card">
-                <div class="dash-title">今日營收 (盈餘)</div>
-                <div class="dash-amount" id="dailyTotal">$0</div>
+    <div id="loginPage">
+        <div class="login-card">
+            <h2>BIANCA EYE</h2>
+            <div class="form-group" style="text-align: left;">
+                <label>帳號 (Email)</label>
+                <input type="email" id="loginEmail" placeholder="請輸入電子信箱">
             </div>
-            <div class="dash-card">
-                <div class="dash-title">本月營收 (盈餘)</div>
-                <div class="dash-amount" id="monthlyTotal">$0</div>
+            <div class="form-group" style="text-align: left;">
+                <label>密碼</label>
+                <input type="password" id="loginPassword" placeholder="請輸入密碼">
             </div>
-            <div class="dash-card highlight">
-                <div class="dash-title">本月服務人次</div>
-                <div class="dash-amount" id="monthlyVisits" style="color: var(--primary-dark);">0 人</div>
-            </div>
-            <div class="dash-card highlight">
-                <div class="dash-title">累積客戶總數</div>
-                <div class="dash-amount" id="totalCustomers" style="color: var(--primary-dark);">0 位</div>
-            </div>
-            <div class="dash-card total">
-                <div class="dash-title">累計總結算 (盈餘)</div>
-                <div class="dash-amount" id="grandTotal">$0</div>
-            </div>
+            <button class="submit-btn" id="loginBtn">登入安全鎖</button>
         </div>
-        <div class="swipe-hint"><span>▲</span><span>滑動</span><span>▼</span></div>
+        <p style="font-size: 12px; color: #BDB7B1; margin-top: 20px;">© Bianca_eye.studio Accounting System</p>
     </div>
 
-    <div class="goal-section">
-        <div class="goal-header">
-            <h3>本月營收目標</h3>
-            <button onclick="toggleGoalSettings()" style="background:none;border:none;color:var(--text-light);font-size:12px;cursor:pointer;">設定 ⚙️</button>
-        </div>
-        <div id="goalSettings" class="goal-settings hidden">
-            <input type="number" inputmode="numeric" id="goalInput" placeholder="輸入目標金額" style="width:100%; padding:8px; margin-bottom:8px; border:1px solid #EBE6E0; border-radius:8px;">
-            <input type="text" id="rewardInput" placeholder="達標鼓勵文字" style="width:100%; padding:8px; margin-bottom:8px; border:1px solid #EBE6E0; border-radius:8px;">
-            <button onclick="saveGoal()" style="width:100%; padding:8px; border-radius:8px; background:var(--primary-color); color:#fff; border:none; margin-bottom:12px;">儲存</button>
-        </div>
-        <div class="progress-container"><div class="progress-bar" id="goalBar"></div></div>
-        <div class="goal-stats">
-            <span id="goalCurrentText">目前營收: $0</span>
-            <span id="goalTargetText">目標: $0</span>
-        </div>
-        <div class="goal-reward" id="goalRewardText">設定一個目標來增加工作動力！</div>
-    </div>
+    <div id="mainPage" class="hidden">
+        <header>
+            <h1>Bianca_eye.studio</h1>
+            <button class="logout-btn" id="logoutBtn">登出系統</button>
+        </header>
 
-    <div class="form-section">
-        <div class="type-toggle">
-            <button class="type-btn active" id="btnIncome" onclick="setRecordType('income')">收入</button>
-            <button class="type-btn" id="btnExpense" onclick="setRecordType('expense')">支出</button>
-        </div>
-
-        <div class="form-group">
-            <label>日期</label>
-            <input type="date" id="recordDate">
-        </div>
-        
-        <div class="form-group" id="customerGroup">
-            <label>客戶姓名</label>
-            <input type="text" id="recordCustomer" placeholder="輸入客戶姓名">
-        </div>
-
-        <div class="form-group" id="itemsGroup">
-            <label>項目 (可複選)</label>
-            <div class="chips">
-                <div class="chip" onclick="toggleChip(this)">濃黑養護</div>
-                <div class="chip" onclick="toggleChip(this)">睫毛管理</div>
-                <div class="chip" onclick="toggleChip(this)">下睫毛</div>
-                <div class="chip" onclick="toggleChip(this)">眉型雕塑</div>
-                <div class="chip" onclick="toggleChip(this)">儲值金</div>
-                <div class="chip" onclick="toggleChip(this)">產品</div>
+        <div class="dash-carousel-container">
+            <div class="dash-carousel">
+                <div class="dash-card">
+                    <div class="dash-title">今日結算 (淨利)</div>
+                    <div class="dash-amount" id="dailyTotal">$0</div>
+                </div>
+                <div class="dash-card">
+                    <div class="dash-title">本月結算 (淨利)</div>
+                    <div class="dash-amount" id="monthlyTotal">$0</div>
+                </div>
+                <div class="dash-card highlight">
+                    <div class="dash-title">本月服務人次</div>
+                    <div class="dash-amount" id="monthlyVisits" style="color: var(--primary-dark);">0 人</div>
+                </div>
+                <div class="dash-card highlight">
+                    <div class="dash-title">累積客戶總數</div>
+                    <div class="dash-amount" id="totalCustomers" style="color: var(--primary-dark);">0 位</div>
+                </div>
+                <div class="dash-card total">
+                    <div class="dash-title">累積總利潤</div>
+                    <div class="dash-amount" id="grandTotal">$0</div>
+                </div>
             </div>
+            <div class="swipe-hint"><span>▲</span><span>滑動</span><span>▼</span></div>
         </div>
 
-        <div class="form-group">
-            <label>金額</label>
-            <input type="text" inputmode="numeric" pattern="[0-9]*" id="recordAmount" placeholder="直接輸入金額">
-        </div>
-        
-        <div class="form-group">
-            <label>備註細項</label>
-            <input type="text" id="recordNote" placeholder="選填或點選下方快速鍵">
-            <div class="shortcut-group">
-                <button class="shortcut-btn" onclick="addShortcut('[8週回訪-100]')">8週回訪-100</button>
-                <button class="shortcut-btn" onclick="addShortcut('[大方分享-50]')">大方分享-50</button>
-                <button class="shortcut-btn" onclick="addShortcut('[生日優惠]')">生日優惠</button>
+        <div class="goal-section">
+            <div class="goal-header">
+                <h3>本月目標</h3>
+                <button onclick="toggleGoalSettings()" style="background:none;border:none;color:var(--text-light);font-size:12px;cursor:pointer;">設定 ⚙️</button>
             </div>
+            <div id="goalSettings" class="goal-settings hidden">
+                <input type="number" inputmode="numeric" id="goalInput" placeholder="輸入目標金額" style="margin-bottom:8px;">
+                <input type="text" id="rewardInput" placeholder="達標獎勵" style="margin-bottom:8px;">
+                <button onclick="saveGoal()" style="width:100%; padding:8px; border-radius:8px; background:var(--primary-color); color:#fff; border:none; margin-bottom:12px;">儲存</button>
+            </div>
+            <div class="progress-container"><div class="progress-bar" id="goalBar"></div></div>
+            <div class="goal-stats">
+                <span id="goalCurrentText">目前營收: $0</span>
+                <span id="goalTargetText">目標: $0</span>
+            </div>
+            <div class="goal-reward" id="goalRewardText">設定一個目標來增加動力吧！</div>
         </div>
-        
-        <button class="submit-btn" id="addBtn">新增雲端紀錄</button>
-    </div>
 
-    <div class="history-section">
-        <div class="search-box">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="searchInput" placeholder="搜尋客戶名稱或備註...">
+        <div class="form-section">
+            <div class="type-toggle">
+                <button class="type-btn active" id="btnIncome" onclick="setRecordType('income')">收入</button>
+                <button class="type-btn" id="btnExpense" onclick="setRecordType('expense')">支出</button>
+            </div>
+            <div class="form-group"><label>日期</label><input type="date" id="recordDate"></div>
+            <div class="form-group" id="customerGroup"><label>客戶姓名</label><input type="text" id="recordCustomer" placeholder="輸入姓名"></div>
+            <div class="form-group" id="itemsGroup">
+                <label>項目 (可複選)</label>
+                <div class="chips">
+                    <div class="chip" onclick="toggleChip(this)">濃黑養護</div>
+                    <div class="chip" onclick="toggleChip(this)">睫毛管理</div>
+                    <div class="chip" onclick="toggleChip(this)">下睫毛</div>
+                    <div class="chip" onclick="toggleChip(this)">眉型雕塑</div>
+                    <div class="chip" onclick="toggleChip(this)">儲值金</div>
+                    <div class="chip" onclick="toggleChip(this)">產品</div>
+                </div>
+            </div>
+            <div class="form-group"><label>金額</label><input type="text" inputmode="numeric" pattern="[0-9]*" id="recordAmount" placeholder="手打金額 (無上限)"></div>
+            <div class="form-group">
+                <label>備註細項</label>
+                <input type="text" id="recordNote" placeholder="選填或快捷鍵">
+                <div class="shortcut-group">
+                    <button class="shortcut-btn" onclick="addShortcut('[8週回訪-100]')">8週回訪-100</button>
+                    <button class="shortcut-btn" onclick="addShortcut('[大方分享-50]')">大方分享-50</button>
+                    <button class="shortcut-btn" onclick="addShortcut('[生日優惠]')">生日優惠</button>
+                </div>
+            </div>
+            <button class="submit-btn" id="addBtn">新增雲端紀錄</button>
         </div>
-        
-        <div class="tabs">
-            <button class="tab-btn active" id="tabIncome" onclick="switchList('income')">收入紀錄</button>
-            <button class="tab-btn" id="tabExpense" onclick="switchList('expense')">支出紀錄</button>
+
+        <div class="history-section">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" placeholder="搜尋客戶或備註...">
+            </div>
+            <div class="tabs">
+                <button class="tab-btn active" id="tabIncome" onclick="switchList('income')">收入紀錄</button>
+                <button class="tab-btn" id="tabExpense" onclick="switchList('expense')">支出紀錄</button>
+            </div>
+            <ul class="record-list" id="recordList"></ul>
         </div>
-        <ul class="record-list" id="recordList"></ul>
     </div>
 </div>
 
+<style> @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } } </style>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, query, orderBy, deleteDoc, doc, onSnapshot } 
-    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, query, orderBy, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBuiNU7dx3MYZCLWv1cqxjToYeaHOMLLE8",
@@ -282,23 +247,64 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
     const recordsCol = collection(db, "accounting_records");
 
     let allRecords = [];
     let currentRecordType = 'income'; 
     let currentTab = 'income';
     let searchQuery = '';
+    let unsubscribe = null; // 用於停止監聽資料庫
 
-    document.getElementById('recordDate').valueAsDate = new Date();
-    loadGoal();
+    // --- 身分驗證邏輯 ---
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            // 登入成功
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('mainPage').classList.remove('hidden');
+            initApp();
+        } else {
+            // 未登入或登出
+            document.getElementById('loginPage').classList.remove('hidden');
+            document.getElementById('mainPage').classList.add('hidden');
+            if (unsubscribe) unsubscribe(); // 停止監聽以免浪費流量或權限錯誤
+        }
+    });
+
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+        const email = document.getElementById('loginEmail').value;
+        const pass = document.getElementById('loginPassword').value;
+        document.getElementById('loader').style.display = 'flex';
+        try {
+            await signInWithEmailAndPassword(auth, email, pass);
+        } catch (e) {
+            alert("登入失敗：請檢查帳號密碼是否正確");
+        }
+        document.getElementById('loader').style.display = 'none';
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+        if(confirm("確定要登出系統嗎？")) signOut(auth);
+    });
+
+    // --- 主程式邏輯 ---
+    function initApp() {
+        document.getElementById('recordDate').valueAsDate = new Date();
+        loadGoal();
+
+        const q = query(recordsCol, orderBy("date", "desc"));
+        unsubscribe = onSnapshot(q, (snapshot) => {
+            allRecords = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            calculateTotals();
+            renderList();
+        });
+    }
 
     window.toggleChip = (el) => el.classList.toggle('selected');
-    
     window.addShortcut = (text) => {
-        const noteInput = document.getElementById('recordNote');
-        noteInput.value = noteInput.value ? noteInput.value + ' ' + text : text;
+        const input = document.getElementById('recordNote');
+        input.value = input.value ? input.value + ' ' + text : text;
     };
-
     window.setRecordType = (type) => {
         currentRecordType = type;
         document.getElementById('btnIncome').className = type === 'income' ? 'type-btn active' : 'type-btn';
@@ -306,22 +312,13 @@
         document.getElementById('itemsGroup').classList.toggle('hidden', type === 'expense');
         document.getElementById('customerGroup').classList.toggle('hidden', type === 'expense');
     };
-
     window.switchList = (tab) => {
         currentTab = tab;
         document.getElementById('tabIncome').classList.toggle('active', tab === 'income');
         document.getElementById('tabExpense').classList.toggle('active', tab === 'expense');
         renderList();
     };
-
-    // 監聽搜尋輸入
-    document.getElementById('searchInput').addEventListener('input', (e) => {
-        searchQuery = e.target.value.trim().toLowerCase();
-        renderList();
-    });
-
     window.toggleGoalSettings = () => document.getElementById('goalSettings').classList.toggle('hidden');
-    
     window.saveGoal = () => {
         localStorage.setItem('studioGoal', document.getElementById('goalInput').value);
         localStorage.setItem('studioReward', document.getElementById('rewardInput').value);
@@ -329,15 +326,13 @@
         toggleGoalSettings();
         calculateTotals();
     };
-
     function loadGoal() {
         document.getElementById('goalInput').value = localStorage.getItem('studioGoal') || '';
         document.getElementById('rewardInput').value = localStorage.getItem('studioReward') || '';
     }
 
-    onSnapshot(query(recordsCol, orderBy("date", "desc")), (snapshot) => {
-        allRecords = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        calculateTotals();
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        searchQuery = e.target.value.trim().toLowerCase();
         renderList();
     });
 
@@ -350,13 +345,9 @@
         if (currentRecordType === 'income') {
             document.querySelectorAll('.chip.selected').forEach(c => selectedItems.push(c.innerText));
             if (selectedItems.length === 0) selectedItems.push('其他收入');
-        } else {
-            selectedItems.push('支出');
-        }
+        } else { selectedItems.push('支出'); }
 
         const amount = parseInt(amountInput.replace(/\D/g, ''));
-        if (isNaN(amount)) return alert('金額格式不正確，請輸入數字');
-
         document.getElementById('loader').style.display = 'flex';
         try {
             await addDoc(recordsCol, {
@@ -372,12 +363,12 @@
             document.getElementById('recordNote').value = '';
             document.getElementById('recordCustomer').value = '';
             document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
-        } catch (e) { alert("連線失敗"); }
+        } catch (e) { alert("同步失敗"); }
         document.getElementById('loader').style.display = 'none';
     });
 
     window.deleteRecord = async (id) => {
-        if (confirm('確定刪除這筆雲端資料？')) {
+        if (confirm('確定刪除雲端資料？')) {
             document.getElementById('loader').style.display = 'flex';
             await deleteDoc(doc(db, "accounting_records", id));
             document.getElementById('loader').style.display = 'none';
@@ -385,70 +376,47 @@
     };
 
     function calculateTotals() {
-        let daily = 0, monthly = 0, grand = 0, revenue = 0;
-        let monthlyVisitsCount = 0;
+        let daily = 0, monthly = 0, grand = 0, revenue = 0, visits = 0;
         const uniqueCustomers = new Set();
-
         const today = new Date().toISOString().split('T')[0];
         const month = today.substring(0, 7);
 
         allRecords.forEach(r => {
-            // 基礎財務計算
             grand += r.amount;
             if (r.date === today) daily += r.amount;
             if (r.date.startsWith(month)) {
                 monthly += r.amount;
-                if (r.amount > 0) {
-                    revenue += r.amount;
-                    monthlyVisitsCount++; // 本月只要有收入紀錄就算 1 人次
-                }
+                if (r.amount > 0) { revenue += r.amount; visits++; }
             }
-            
-            // 計算不重複的客戶總數 (排除空白或未填寫)
-            if (r.customer && r.customer.trim() !== '') {
-                uniqueCustomers.add(r.customer.trim());
-            }
+            if (r.customer && r.customer.trim() !== '') uniqueCustomers.add(r.customer.trim());
         });
 
-        // 財務更新
         document.getElementById('dailyTotal').innerText = `$${daily.toLocaleString()}`;
         document.getElementById('monthlyTotal').innerText = `$${monthly.toLocaleString()}`;
         document.getElementById('grandTotal').innerText = `$${grand.toLocaleString()}`;
-        
-        // 客戶指標更新
-        document.getElementById('monthlyVisits').innerText = `${monthlyVisitsCount} 人次`;
+        document.getElementById('monthlyVisits').innerText = `${visits} 人次`;
         document.getElementById('totalCustomers').innerText = `${uniqueCustomers.size} 位`;
 
-        // 目標更新
         const goal = parseInt(localStorage.getItem('studioGoal')) || 0;
         document.getElementById('goalCurrentText').innerText = `目前營收: $${revenue.toLocaleString()}`;
         if (goal > 0) {
             document.getElementById('goalTargetText').innerText = `目標: $${goal.toLocaleString()}`;
             document.getElementById('goalBar').style.width = `${Math.min((revenue/goal)*100, 100)}%`;
             const diff = goal - revenue;
-            document.getElementById('goalRewardText').innerText = diff > 0 ? `距離目標還差 $${diff.toLocaleString()} ✨` : `🎉 已達標！禮物：${localStorage.getItem('studioReward')}`;
+            document.getElementById('goalRewardText').innerText = diff > 0 ? `還差 $${diff.toLocaleString()} 加油！✨` : `🎉 已達標！獎勵：${localStorage.getItem('studioReward')}`;
         }
     }
 
     function renderList() {
         const list = document.getElementById('recordList');
         list.innerHTML = '';
-        
-        // 同時過濾「分頁」與「搜尋關鍵字」
-        const filteredRecords = allRecords.filter(r => {
+        const filtered = allRecords.filter(r => {
             const matchTab = currentTab === 'income' ? r.amount > 0 : r.amount < 0;
-            
-            let matchSearch = true;
-            if (searchQuery) {
-                const customerName = r.customer ? r.customer.toLowerCase() : '';
-                const noteText = r.note ? r.note.toLowerCase() : '';
-                matchSearch = customerName.includes(searchQuery) || noteText.includes(searchQuery);
-            }
-            
+            const matchSearch = !searchQuery || (r.customer && r.customer.toLowerCase().includes(searchQuery)) || (r.note && r.note.toLowerCase().includes(searchQuery));
             return matchTab && matchSearch;
         });
 
-        filteredRecords.forEach(r => {
+        filtered.forEach(r => {
             const li = document.createElement('li');
             li.className = 'record-item';
             li.innerHTML = `
@@ -464,11 +432,6 @@
                 </div>`;
             list.appendChild(li);
         });
-
-        // 搜尋不到結果的提示
-        if(filteredRecords.length === 0 && searchQuery) {
-            list.innerHTML = `<li style="text-align:center; padding:20px; color:#8A857F; font-size:13px;">找不到符合「${searchQuery}」的紀錄</li>`;
-        }
     }
 </script>
 </body>
